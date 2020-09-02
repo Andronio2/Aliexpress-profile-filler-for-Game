@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aliexpress profile filler for Game
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Изменяет в профиле страну на заданную и заполняет поля
 // @author       Andronio
 // @homepage     https://github.com/Andronio2/Aliexpress-profile-filler-for-Game
@@ -11,7 +11,8 @@
 // @match        https://accounts.aliexpress.com/user/organization/manage_person_profile.htm?isEdit=true
 // @grant        none
 // ==/UserScript==
-(function() {
+let profileLoadPageCounter = 50;
+(function repeat() {
     'use strict';
 let settings = [
 /*
@@ -24,6 +25,15 @@ let settings = [
  * Конец настроек, дальше не трогать
  */
 ];
+    let countrySelect = document.getElementById('countrySelect');
+    let countryInput = document.querySelector('input[name="_fmu.e._0.co"]');
+    if (--profileLoadPageCounter) {
+        if (!countrySelect && !countryInput) return setTimeout(repeat, 200);
+    } else return;
+    if (countryInput) {
+        location.reload();
+        return;
+    }
     let div = document.createElement('div');
     div.className = 'mybox-profile-changer';
 
@@ -103,6 +113,7 @@ let settings = [
         allInput[15].value = getRandomInt(999);
         allInput[16].value = getRandomInt(99999999);
         allInput[17].value = "1";
+        allInput[5].value = country;
         submitButton.click();
     }
 
