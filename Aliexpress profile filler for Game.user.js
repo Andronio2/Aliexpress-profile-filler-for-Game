@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aliexpress profile filler for Game
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Изменяет в профиле страну на заданную и заполняет поля
 // @author       Andronio
 // @homepage     https://github.com/Andronio2/Aliexpress-profile-filler-for-Game
@@ -11,8 +11,7 @@
 // @match        https://accounts.aliexpress.com/user/organization/manage_person_profile.htm?isEdit=true
 // @grant        none
 // ==/UserScript==
-let profileLoadPageCounter = 50;
-(function repeat() {
+(function() {
     'use strict';
 let settings = [
 /*
@@ -25,15 +24,6 @@ let settings = [
  * Конец настроек, дальше не трогать
  */
 ];
-    let countrySelect = document.getElementById('countrySelect');
-    let countryInput = document.querySelector('input[name="_fmu.e._0.co"]');
-    if (--profileLoadPageCounter) {
-        if (!countrySelect && !countryInput) return setTimeout(repeat, 200);
-    } else return;
-    if (countryInput) {
-        location.reload();
-        return;
-    }
     let div = document.createElement('div');
     div.className = 'mybox-profile-changer';
 
@@ -72,31 +62,37 @@ let settings = [
         let countrySel = document.getElementById("countrySelect");
         let allInput = document.querySelectorAll("input");
         let submitButton = document.getElementById("formSubmit");
+        let countryInput = document.querySelector('input[name="_fmu.e._0.co"]');
 
-        let isCountryPresent = false;
-        let availableCountry = document.querySelectorAll('#countrySelect option');
-        availableCountry.forEach(cntr => {
-            if (cntr.value == country) isCountryPresent = true;
-        });
-        if (!isCountryPresent) return alert('Такой страны нет в списке');
-        countrySel.value = country;
-        countrySel.onchange();
-        await sleep(settings[settings.length - 1]);
-        let province = document.querySelectorAll('#provinceWrap td select');
-        let isSelect = false;
-        let i;
-        for (i = 0; i < province.length; i++) {
-            if (province[i].style.display != "none") {
-                isSelect = true;
-                break;
+// Выбор страны
+        if (countryInput) {
+            countryInput.value = country;
+        } else {
+            let isCountryPresent = false;
+            let availableCountry = document.querySelectorAll('#countrySelect option');
+            availableCountry.forEach(cntr => {
+                if (cntr.value == country) isCountryPresent = true;
+            });
+            if (!isCountryPresent) return alert('Такой страны нет в списке');
+            countrySel.value = country;
+            countrySel.onchange();
+            await sleep(settings[settings.length - 1]);
+            let province = document.querySelectorAll('#provinceWrap td select');
+            let isSelect = false;
+            let i;
+            for (i = 0; i < province.length; i++) {
+                if (province[i].style.display != "none") {
+                    isSelect = true;
+                    break;
+                }
+            }
+            if (isSelect) {
+                province[i].selectedIndex = Math.floor(Math.random() * (province[i].length - 2) + 1);
+            } else {
+                allInput[12].value = randomString(9);
             }
         }
-        if (isSelect) {
-            province[i].selectedIndex = Math.floor(Math.random() * (province[i].length - 2) + 1);
-        } else {
-            allInput[12].value = randomString(9);
-        }
-
+// Пол
         if (genderMale.checked == false && genderFemale.checked == false) {
             if (Math.random() > 0.5) {
                 genderMale.checked = true;
@@ -104,23 +100,21 @@ let settings = [
                 genderFemale.checked = true;
             }
         }
+        document.querySelector('input[name="_fmu.e._0.f"]').value = country;
+        if (document.querySelector('input[name="_fmu.e._0.l"]').value == "") document.querySelector('input[name="_fmu.e._0.l"]').value = randomString(9); // Имя
+        if (document.querySelector('input[name="_fmu.e._0.ad"]').value == "") document.querySelector('input[name="_fmu.e._0.ad"]').value = randomString(9); // Адрес
+        if (document.querySelector('input[name="_fmu.e._0.c"]').value == "") document.querySelector('input[name="_fmu.e._0.c"]').value = randomString(9); // Город
+        if (document.querySelector('input[name="_fmu.e._0.z"]').value == "") document.querySelector('input[name="_fmu.e._0.z"]').value = randomIntString(5); // Индекс
 
-        if (allInput[10].value == "") allInput[10].value = randomString(9);
-        if (allInput[11].value == "") allInput[11].value = randomString(9);
-        if (allInput[13].value == "") allInput[13].value = getRandomInt(999999);
-
-        allInput[14].value = "1";
-        allInput[15].value = getRandomInt(999);
-        allInput[16].value = getRandomInt(99999999);
-        allInput[17].value = "1";
-        allInput[5].value = country;
+        document.querySelector('input[name="_fmu.e._0.ph"]').value = document.querySelector('input[name="_fmu.e._0.fa"]').value = '1';
+        document.querySelector('input[name="_fmu.e._0.pho"]').value = document.querySelector('input[name="_fmu.e._0.fax"]').value = randomIntString(3); // Тел код
+        document.querySelector('input[name="_fmu.e._0.phon"]').value = document.querySelector('input[name="_fmu.e._0.faxn"]').value = randomIntString(8); // Тел код
         submitButton.click();
     }
 
-    function randomString(i)
-    {
-        var text = "";
-        var possible = "abcdefghijklmnopqrstuvwxyz";
+    function randomString(i) {
+        let text = "";
+        let possible = "abcdefghijklmnopqrstuvwxyz";
 
         while (text.length < i)
             text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -131,9 +125,14 @@ let settings = [
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    
+    function randomIntString(i) {
+        let text = "";
+        let possible = "0123456789";
 
-    function getRandomInt(max) {
-        return Math.floor(Math.random() * Math.floor(max)).toString();
+        while (text.length < i)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
     }
-
 })();
