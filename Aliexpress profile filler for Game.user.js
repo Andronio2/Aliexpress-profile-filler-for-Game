@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aliexpress profile filler for Game
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Изменяет в профиле страну на заданную и заполняет поля
 // @author       Andronio
 // @homepage     https://github.com/Andronio2/Aliexpress-profile-filler-for-Game
@@ -59,39 +59,12 @@ let settings = [
         let country = elem.dataset.country;
         let genderMale = document.getElementById("mr");
         let genderFemale = document.getElementById("ms");
-        let countrySel = document.getElementById("countrySelect");
         let allInput = document.querySelectorAll("input");
         let submitButton = document.getElementById("formSubmit");
         let countryInput = document.querySelector('input[name="_fmu.e._0.co"]');
 
 // Выбор страны
-        if (countryInput) {
-            countryInput.value = country;
-        } else {
-            let isCountryPresent = false;
-            let availableCountry = document.querySelectorAll('#countrySelect option');
-            availableCountry.forEach(cntr => {
-                if (cntr.value == country) isCountryPresent = true;
-            });
-            if (!isCountryPresent) return alert('Такой страны нет в списке');
-            countrySel.value = country;
-            countrySel.onchange();
-            await sleep(settings[settings.length - 1]);
-            let province = document.querySelectorAll('#provinceWrap td select');
-            let isSelect = false;
-            let i;
-            for (i = 0; i < province.length; i++) {
-                if (province[i].style.display != "none") {
-                    isSelect = true;
-                    break;
-                }
-            }
-            if (isSelect) {
-                province[i].selectedIndex = Math.floor(Math.random() * (province[i].length - 2) + 1);
-            } else {
-                allInput[12].value = randomString(9);
-            }
-        }
+        countryInput.value = country;
 // Пол
         if (genderMale.checked == false && genderFemale.checked == false) {
             if (Math.random() > 0.5) {
@@ -125,7 +98,7 @@ let settings = [
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-    
+
     function randomIntString(i) {
         let text = "";
         let possible = "0123456789";
